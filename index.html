@@ -9,10 +9,10 @@
             body {
                 padding-inline: 15%;
                 padding-top: 5%;
-                justify-content: center;
                 font-family: 'Courier New', Courier, monospace;
                 background-color: #abcdef;
                 font-size: x-large;
+                text-align: justify;
             }
             h2 {
                 text-decoration: underline;
@@ -27,18 +27,23 @@
                 text-decoration: none;
                 color: #aaaaaa;
             }
+            #footer {
+                position: fixed;
+                text-align: center;
+                width: 100%;
+                left: 0;
+                bottom: 0;
+            }
         </style>
     </head>
     <body>
-        <div>
-            <h1 id="title">josh pahman's website</h1>
-            <h2>info</h2>
-            <p>
-                Hey, welcome to my little corner of the internet. It doesn't look like much, but it loads practically instantly and should work properly on pretty much any system that supports HTTP.
-                <br/><br/>
-                I'll probably add more here when I feel like it. For now, feel free to check out my <a href="https://github.com/jpahm" target="_blank">Github</a>.
-            </p>
-        </div>
+        <h1 id="title">josh pahman's website</h1>
+        <h2>info</h2>
+        <p>
+            Hey, welcome to my little corner of the internet. It doesn't look like much, but it loads practically instantly and should work properly on pretty much any system that supports HTTP.
+            <br/><br/>
+            I'll probably add more here when I feel like it. For now, feel free to check out my <a href="https://github.com/jpahm" target="_blank">Github</a> or <a href="https://www.linkedin.com/in/jpahm/">LinkedIn</a>.
+        </p>
         <script>
             // Do the silly title thing
             let title = document.getElementById("title");
