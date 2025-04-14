@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            #title {
+                text-align: center;
+            }
+            body {
+                padding-inline: 5%;
+                padding-top: 2%;
+                justify-content: center;
+                font-family: 'Courier New', Courier, monospace;
+                background-color: #abcdef;
+                font-size: x-large;
+            }
+            header {
+                margin-bottom: 5rem;
+            }
+            a:visited {
+                color: #aaaaaa;
+            }
+            a {
+                color: #000000;
+            }
+            a:hover {
+                text-decoration: none;
+                color: #aaaaaa;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1 id="title">josh pahman's website</h1>
+            <h2>info</h2>
+            <p>
+                Hey, welcome to my little corner of the internet. It doesn't look like much, but it loads practically instantly and should work properly on pretty much any system that supports HTTP.
+                <br/><br/>
+                I'll probably add more here when I feel like it. For now, feel free to check out my <a href="https://github.com/jpahm" target="_blank">Github</a>.
+            </p>
+        </div>
+        <script>
+            // Do the silly title thing
+            let title = document.getElementById("title");
+            let titleChars = title.innerText.split('');
+            setTimeout(() => {
+                let handle = setInterval(() => {
+                    title.innerText = titleChars.join('');
+                }, 250);
+                // No more "osh "
+                for (let i = 1; i < 5; i++) {
+                    setTimeout(() => {
+                        titleChars[i] = '';
+                        title.innerText = titleChars.join('');
+                    }, (i - 1) * 250);
+                }
+                // No more "an"
+                setTimeout(() => {
+                    for (let i = 10; i >= 9; i--) {
+                        setTimeout(() => {
+                            titleChars[i] = '';
+                            title.innerText = titleChars.join('');
+                        }, (10 - i) * 250);
+                    }
+                }, 1000);
+            }, 3000);
+        </script>
+    </body>
+</html>
