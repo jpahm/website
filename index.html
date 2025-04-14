@@ -18,14 +18,14 @@
                 text-decoration: underline;
             }
             a {
-                color: #000000;
+                color: #3888d9;
             }
             a:visited {
-                color: #aaaaaa;
+                color: #69a6e2;
             }
             a:hover {
                 text-decoration: none;
-                color: #aaaaaa;
+                color: #69a6e2;
             }
             #footer {
                 position: fixed;
@@ -45,6 +45,7 @@
             <br/><br/>
             I'll probably add more here when I feel like it. For now, feel free to check out my <a href="https://github.com/jpahm">Github</a> or <a href="https://www.linkedin.com/in/jpahm/">LinkedIn</a>.
         </p>
+        <div id="footer"><b>milliseconds since this website went online:</b> <span id="time"></span></div>
         <script>
             // Do the silly title thing
             let title = document.getElementById("title");
@@ -70,6 +71,14 @@
                     }
                 }, 1000);
             }, 3000);
+        </script>
+        <script>
+            // Time tracker
+            let start = Date.parse("Mon Apr 14 03:34:05 2025 UTC-5");
+            setInterval(() => {
+                let millis = Date.now() - start;
+                document.getElementById("time").innerText = millis;
+            }, 100)
         </script>
     </body>
 </html>
