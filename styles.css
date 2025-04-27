@@ -1,0 +1,66 @@
+html {
+    background-color: black;
+}
+
+html, body {
+    height: fit-content;
+    margin: 0;
+}
+
+#terminal {
+    background-color: inherit;
+    color: #ffffff;
+    padding: 3%;
+    height: 100%;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: x-large;
+}
+
+#terminal > p {
+    margin: 0;
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+    padding: 0;
+    display: inline-block;
+}
+
+.warning {
+    color: yellow;
+}
+
+.error {
+    color: black;
+    background-color: red;
+    font-weight: bold;
+}
+
+.success {
+    color: limegreen;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+#terminal > img {
+    display: block;
+}
+
+#prefix, #terminal-input {
+    background-color: inherit;
+    resize: none;
+    font-size: inherit;
+    font-family: inherit;
+    color: inherit;
+    border: none;
+    overflow: hidden;
+    outline: none;
+    height: 1.05em;
+    padding: 0;
+    margin: 0;
+    margin-top: 0.25em;
+
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}

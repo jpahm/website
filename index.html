@@ -1,78 +1,17 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <style>
-            #title {
-                text-align: center;
-                margin-bottom: 5rem;
-            }
-            body {
-                padding-inline: 15%;
-                padding-top: 5%;
-                font-family: 'Courier New', Courier, monospace;
-                background-color: #abcdef;
-                font-size: x-large;
-                text-align: justify;
-            }
-            h2 {
-                text-decoration: underline;
-            }
-            a:visited {
-                color: #69a6e2;
-            }
-            a:hover {
-                text-decoration: none;
-                color: #69a6e2;
-            }
-            #footer {
-                position: fixed;
-                text-align: center;
-                width: 100%;
-                left: 0;
-                bottom: 0;
-            }
-        </style>
+        <meta charset="UTF-8"/>
+        <meta name="description" content="Josh Pahman's Website"/>
+        <meta name="author" content="Josh Pahman"/>       
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <link rel="stylesheet" href="./styles.css"/>
         <base target="_blank"/>
     </head>
     <body>
-        <h1 id="title">josh pahman's website</h1>
-        <h2>info</h2>
-        <p>
-            Hey, welcome to my little corner of the internet. It doesn't look like much, but it loads practically instantly and should work properly on pretty much any system that supports HTTP.
-            <br/><br/>
-            I'll probably add more here when I feel like it. For now, feel free to check out my <a href="https://github.com/jpahm">Github</a> or <a href="https://www.linkedin.com/in/jpahm/">LinkedIn</a>.
-        </p>
-        <div id="footer"><b>milliseconds since this website went online:</b> <span id="time"></span></div>
-        <script>
-            // Do the silly title thing
-            let title = document.getElementById("title");
-            let titleChars = title.innerText.split('');
-            setTimeout(() => {
-                // No more "osh "
-                for (let i = 1; i < 5; i++) {
-                    setTimeout(() => {
-                        titleChars[i] = '';
-                        title.innerText = titleChars.join('');
-                    }, (i - 1) * 250);
-                }
-                // No more "an"
-                setTimeout(() => {
-                    for (let i = 10; i >= 9; i--) {
-                        setTimeout(() => {
-                            titleChars[i] = '';
-                            title.innerText = titleChars.join('');
-                        }, (10 - i) * 250);
-                    }
-                }, 1000);
-            }, 3000);
-        </script>
-        <script>
-            // Time tracker
-            let start = Date.parse("Mon Apr 14 03:34:05 2025 UTC-5");
-            setInterval(() => {
-                let millis = Date.now() - start;
-                document.getElementById("time").innerText = millis;
-            }, 10)
-        </script>
+        <div id="terminal">
+            <textarea id="prefix" readonly></textarea><textarea id="terminal-input" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus></textarea>
+        </div>
+        <script src="./terminal.js"></script>
     </body>
 </html>
