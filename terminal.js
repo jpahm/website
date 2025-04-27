@@ -1,6 +1,6 @@
 "use strict";
 
-const Version = "0.1.0";
+const Version = "0.1.1";
 const Terminal = document.getElementById("terminal");
 const InputArea = document.getElementById("terminal-input");
 const Prefix = document.getElementById("prefix");
@@ -422,11 +422,12 @@ Commands.cat = new Command([
     [
         new CommandParam("path", "A local or remote path to the file."),
     ], ({path}) => {
-        WriteLine(`<iframe src='${path}' style='width: ${Prefix.clientWidth + InputArea.clientWidth}px; height: 20em; background-color:white'></iframe>`)
+        WriteLine(`<iframe src='${path}' style='width: ${Prefix.clientWidth + InputArea.clientWidth}px; height: 20em; background-color:white'></iframe>`);
     })
 ]);
 
 // TODO: ls/dir (just cat the current dir)
 // TODO: cd (change current dir)
+// TODO: set (with substitution????)
 
 Initialize();
