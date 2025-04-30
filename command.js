@@ -98,15 +98,15 @@ export function Tokenize(text) {
 
     let inString = false;
     let isEscaped = false;
-    let curToken = "";
+    let buffer = [];
 
     for (const c of text) {
         // If we're not escaped and we encounter a quote, we need to start/end a string token
         if (!isEscaped && c == '"') {
             // If string flag set, we're ending a string; push token we've built so far excluding the quotes
             if (inString) {
-                tokens.push(curToken);
-                curToken = "";
+                tokens.push(buffer.join(''));
+                buffer = [];
             }
             // In either case, flip the string flag and continue to next char after quote
             inString = !inString;
@@ -122,15 +122,15 @@ export function Tokenize(text) {
         // Don't tokenize whitespace unless we're in a string -- instead, finish any in-progress tokens
         const isWhiteSpace = /\s/.test(c);
         if (!inString && isWhiteSpace) {
-            if (curToken != "") {
-                tokens.push(curToken);
-                curToken = "";
+            if (buffer.length != 0) {
+                tokens.push(buffer.join(''));
+                buffer = [];
             }
             continue;
         }
 
         // Add current character to token builder
-        curToken += c;
+        buffer.push(c);
 
         // Reset escaped flag at end of char processing if set
         if (isEscaped)
@@ -138,8 +138,8 @@ export function Tokenize(text) {
     }
 
     // Add final token to tokens if in progress
-    if (curToken != "")
-        tokens.push(curToken);
+    if (buffer.length != 0)
+        tokens.push(buffer.join(''));
 
     return tokens;
 }

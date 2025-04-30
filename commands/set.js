@@ -1,5 +1,5 @@
 import { RegisterCommand, Command, CommandOverload, CommandParam } from "../command.js";
-import { Variables } from "../terminal.js";
+import { Variables, ContextualEval } from "../terminal.js";
 
 const name = "set";
 const aliases = [];
@@ -18,8 +18,7 @@ const overloads = [
                 .replace(/--variable|--value/, '')
                 .replace(variable, '')
                 .trimStart();
-            // We can safely do eval here because the entire site is clientside anyways :)
-            Variables[variable] = eval(`"use strict";(${rawValue})`);
+            Variables[variable] = ContextualEval(rawValue, Variables);
         }
     )
 ];

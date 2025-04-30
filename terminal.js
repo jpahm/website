@@ -3,7 +3,7 @@
 import { Tokenize, GetCommand, ExecuteCommand } from "./command.js";
 import "./commands/init.js";
 
-export const Version = "0.2.0";
+export const Version = "0.2.1";
 export const Terminal = document.getElementById("terminal");
 export const InputArea = document.getElementById("terminal-input");
 export const Prefix = document.getElementById("prefix");
@@ -21,8 +21,19 @@ var CurrentPath = null;
 
 function Initialize() {
     LoadPath("/");
-    WriteLine(`Website [Version ${Version}]`);
-    WriteLine("(c) <a href='https://linkedin.com/in/jpahm' style='color:#abcdef; font-weight:bold'>Josh Pahman</a> 2025. No rights reserved.");
+    WriteLine(`
+        Website [Version ${Version}]
+        (c) <b>Josh Pahman</b> 2025. No rights reserved.
+
+        <span style="color:#6A9955">/**
+        
+        Hey, welcome to my website! This is a web-based CLI written entirely by hand with <b>no dependencies.</b>
+        HTML can be written directly to the terminal and JavaScript expressions are supported via \${{EXPRESSION}}.
+        
+        I hope you enjoy; check out my <a style='color:inherit' href='https://linkedin.com/in/jpahm'>LinkedIn</a> and <a style='color:inherit' href='https://github.com/jpahm'>Github</a> while you're here!
+        
+        **/</span>
+    `);
     WriteBreak();
 }
 
@@ -38,6 +49,7 @@ visualViewport.addEventListener("resize", () => {
 
 // Handle keypresses in the terminal
 InputArea.addEventListener("keydown", (e) => {
+    InputArea.placeholder = "";
     switch (e.key) {
         case "Enter":
             // Write to stdout on enter
@@ -177,10 +189,16 @@ function ProcessInput(rawInput) {
         HistoryFlag = false;
 
         // Do variable substitution before tokenization
-        const substituted = trimmed.replace(/\$\((.*)\)|(\$[A-z]+)/g, (_, group, name) => {
-            const toSub = String(group ?? name).replace(/\$([A-z]+)/g, "Variables.$1");
-            // We can safely do eval here because the entire site is clientside anyways :)
-            return JSON.stringify(eval(`"use strict";(${toSub})`));
+        const substituted = trimmed.replace(/\\?(?:\$\{\{((?:[^\\}]|\\.|}(?!}))*?)\}\}|(\$[A-z_]+))/g, (match, group, name) => {
+            // Allow for escaping substitution
+            if (match.startsWith('\\'))
+                return match.slice(1);
+            const toSub = String(group ?? name).replace(/\$([A-z]+)/g, "$1");
+            const val = ContextualEval(toSub, Variables);
+            if (typeof val == 'object')
+                return JSON.stringify(val);
+            else
+                return val;
         });
 
         // Tokenize text, then find and run command
@@ -194,6 +212,17 @@ function ProcessInput(rawInput) {
     catch (error) {
         WriteLine(`<span class="error">${error.name}:</span> ${error.message}`)
     }
+}
+
+/**
+ * Perform 'safe' evaluation of a javascript expression given a context object containing the variables to expose.
+ * @param {String} expr The expression to evaluate.
+ * @param {object} context Object containing the variables to expose to the evaluated expression.
+ * @returns 
+ */
+export function ContextualEval(expr, context) {
+    return Function(...Object.keys(context), `"use strict"; return (${expr})`)
+           (...Object.values(context));
 }
 
 Initialize();

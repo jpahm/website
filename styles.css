@@ -38,6 +38,10 @@ html, body {
     color: limegreen;
 }
 
+a {
+    font-weight: bold;
+}
+
 a:hover {
     text-decoration: none;
 }
