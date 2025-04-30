@@ -14,7 +14,8 @@ const overloads = [
         () => {
             // List basic help info for all commands alphabetically
             for (let commandName of Object.keys(Commands).sort())
-                WriteHelpInfo(commandName, false);
+                if (!Commands[commandName].Hidden)
+                    WriteHelpInfo(commandName, false);
         }
     ),
 
@@ -69,7 +70,7 @@ function WriteHelpInfo(cmdName, detailed = false) {
 
         // Build flag descriptions
         for (const flag of overload.Flags)
-            flagDescs += `-${flag.Name}: ${flag.Description}`;
+            flagDescs += `-${flag.Name}: ${flag.Description}\n`;
         
         let overloadText = `<b>${syntaxText} |</b> ${overload.Help}\n`;
         

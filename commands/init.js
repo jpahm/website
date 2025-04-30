@@ -4,3 +4,4 @@ import "./color.js";
 import "./echo.js";
 import "./help.js";
 import "./set.js";
+import "./test.js"

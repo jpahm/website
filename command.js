@@ -80,10 +80,12 @@ export class Command {
      * Creates a new terminal command.
      * @param {CommandOverload[]} overloads The overloads (implementations) of the command. 
      * @param {String[]} aliases Aliases to use for command lookup in addition to the command's registered name.
-     */
-    constructor(overloads = [], aliases = []) {
+     * @param {boolean} hidden Whether this command should be hidden from the help menu.
+    */
+    constructor(overloads = [], aliases = [], hidden = false) {
         this.Overloads = overloads;
         this.Aliases = aliases;
+        this.Hidden = hidden;
     }
 }
 
@@ -182,25 +184,26 @@ export function ExecuteCommand(command, rawText, tokens) {
 
     // Try each overload
     for (const overload of command.Overloads) {
-        // Get the flags
-        parsedFlags = overload.Flags.filter((f) => flags.hasOwnProperty(f.Name));
+        // Set the flags
+        for (const flag of overload.Flags)
+            parsedFlags[flag.Name] = flags.hasOwnProperty(flag.Name);
 
-        // Get a list of params, starting with the ones that were explicitly named
+        // Build list of expected params based on matching precedence, keeping them in listed order if possible
         const expectedParams = [];
-        for (let pass = 0; pass < 2; pass++) {
-            for (const param of overload.Params) {
-                if (pass == 0 && named.hasOwnProperty(param.Name))
-                    expectedParams.push(param);
-                else if (pass == 1 && !named.hasOwnProperty(param.Name))
-                    expectedParams.push(param);
-            }
-        }
+        // Explicitly named params first
+        expectedParams.push(...overload.Params.filter((p) => named.hasOwnProperty(p.Name)));
+        // Then required params
+        expectedParams.push(...overload.Params.filter((p) => !p.Optional && !expectedParams.includes(p)));
+        // Then optional non-variadic params
+        expectedParams.push(...overload.Params.filter((p) => !p.Variadic && !expectedParams.includes(p)));
+        // Then optional variadic params
+        expectedParams.push(...overload.Params.filter((p) => !expectedParams.includes(p)));
+
         const paramMap = {};
         let success = true;
         let posCursor = 0;
 
-        for (let i = 0; i < expectedParams.length; i++) {
-            const param = expectedParams[i];
+        for (const param of expectedParams) {
             const name = param.Name;
             let rawValue = undefined;
 

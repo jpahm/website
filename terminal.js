@@ -177,10 +177,10 @@ function ProcessInput(rawInput) {
         HistoryFlag = false;
 
         // Do variable substitution before tokenization
-        const substituted = trimmed.replace(/\$\((.*)\)|(\$\S+)/g, (_, group, name) => {
-            const toSub = String(group ?? name).replace(/\$(\S+)/g, "Variables.$1");
+        const substituted = trimmed.replace(/\$\((.*)\)|(\$[A-z]+)/g, (_, group, name) => {
+            const toSub = String(group ?? name).replace(/\$([A-z]+)/g, "Variables.$1");
             // We can safely do eval here because the entire site is clientside anyways :)
-            return eval(`"use strict";(${toSub})`);
+            return JSON.stringify(eval(`"use strict";(${toSub})`));
         });
 
         // Tokenize text, then find and run command
