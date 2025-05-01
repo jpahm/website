@@ -1,5 +1,5 @@
-import { RegisterCommand, Command, CommandOverload, CommandParam, CommandFlag } from "../command.js";
-import { WriteLine } from "../terminal.js";
+import { registerCommand, Command, CommandOverload, CommandParam, CommandFlag } from "../command.js";
+import { writeLine } from "../terminal.js";
 
 const name = "test";
 const aliases = [];
@@ -17,7 +17,7 @@ const overloads = [
             new CommandFlag("x", "test flag 2")
         ],
         ({ ov, p, v, op, __rawText, __tokens }, flags) => {
-            WriteLine(`
+            writeLine(`
                 raw: ${__rawText}
                 tokens: ${__tokens}
                 ov: ${ov.join(',')}
@@ -30,4 +30,4 @@ const overloads = [
     )
 ];
 
-RegisterCommand(name, new Command(overloads, aliases, true));
+registerCommand(name, new Command(overloads, aliases, true));

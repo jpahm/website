@@ -1,17 +1,18 @@
 "use strict";
 
-export const Commands = {};
-const Aliases = {};
+export const commands = {};
+const aliases = {};
 
 /**
  * Registers a command's name and aliases for use in the terminal.
  * @param {String} name The primary name to register the command with. 
  * @param {Command} command The command object.
  */
-export function RegisterCommand(name, command) {
-    Commands[name] = command;
-    for (const alias of command.Aliases)
-        Aliases[alias] = command;
+export function registerCommand(name, command) {
+    commands[name] = command;
+    commands[name].name = name;
+    for (const alias of command.aliases)
+        aliases[alias] = command;
 }
 
 /**
@@ -19,13 +20,13 @@ export function RegisterCommand(name, command) {
  * @param {String} name The name of a command, or one of a command's aliases.
  * @returns {Command} The command.
  */
-export function GetCommand(name) {
-    if (Commands.hasOwnProperty(name))
-        return Commands[name];
-    else if (Aliases.hasOwnProperty(name))
-        return Aliases[name];
+export function getCommand(name) {
+    if (commands.hasOwnProperty(name))
+        return commands[name];
+    else if (aliases.hasOwnProperty(name))
+        return aliases[name];
     else
-        throw new Error(`Command \"${tokens[0]}\" does not exist.`);
+        throw new Error(`Command \"${name}\" does not exist.`);
 }
 
 export class CommandFlag {
@@ -35,8 +36,8 @@ export class CommandFlag {
      * @param {String} description A description of what the flag represents, for help purposes.
      */
     constructor(name, description) {
-        this.Name = name;
-        this.Description = description;
+        this.name = name;
+        this.description = description;
     }
 }
 
@@ -51,11 +52,11 @@ export class CommandParam {
      *      Takes in an array of string values if the parameter is variadic.
      */
     constructor(name, description, optional = false, variadic = false, parser = (input) => { return input; }) {
-        this.Name = name;
-        this.Description = description;
-        this.Optional = optional;
-        this.Variadic = variadic;
-        this.Parser = parser;
+        this.name = name;
+        this.description = description;
+        this.optional = optional;
+        this.variadic = variadic;
+        this.parser = parser;
     }
 }
 
@@ -68,10 +69,10 @@ export class CommandOverload {
      * @param {(params: object, flags: object) => void} executor The code that executes this overload's functionality. Receives parameters and flags as objects.
      */
     constructor(helpText, params = [], flags = [], executor = () => { }) {
-        this.Help = helpText;
-        this.Params = params;
-        this.Flags = flags;
-        this.Executor = executor;
+        this.helpText = helpText;
+        this.params = params;
+        this.flags = flags;
+        this.executor = executor;
     }
 }
 
@@ -83,9 +84,9 @@ export class Command {
      * @param {boolean} hidden Whether this command should be hidden from the help menu.
     */
     constructor(overloads = [], aliases = [], hidden = false) {
-        this.Overloads = overloads;
-        this.Aliases = aliases;
-        this.Hidden = hidden;
+        this.overloads = overloads;
+        this.aliases = aliases;
+        this.hidden = hidden;
     }
 }
 
@@ -93,7 +94,7 @@ export class Command {
  * Tokenizes text for command processing.
  * @param {String} text The text to tokenize.
  */
-export function Tokenize(text) {
+export function tokenize(text) {
     const tokens = [];
 
     let inString = false;
@@ -150,7 +151,7 @@ export function Tokenize(text) {
  * @param {string} rawText The raw terminal input. Passed to the command as __rawText.
  * @param {string[]} tokens The tokenized input. Passed to the command as __tokens.
  */
-export function ExecuteCommand(command, rawText, tokens) {
+export function executeCommand(command, rawText, tokens) {
     const allTokens = tokens.slice(1); // Remove command name
 
     // Preprocess named and positional parameters from tokens for later parsing
@@ -183,46 +184,46 @@ export function ExecuteCommand(command, rawText, tokens) {
     let parsedFlags = {};
 
     // Try each overload
-    for (const overload of command.Overloads) {
+    for (const overload of command.overloads) {
         // Set the flags
-        for (const flag of overload.Flags)
-            parsedFlags[flag.Name] = flags.hasOwnProperty(flag.Name);
+        for (const flag of overload.flags)
+            parsedFlags[flag.name] = flags.hasOwnProperty(flag.name);
 
         // Build list of expected params based on matching precedence, keeping them in listed order if possible
         const expectedParams = [];
         // Explicitly named params first
-        expectedParams.push(...overload.Params.filter((p) => named.hasOwnProperty(p.Name)));
+        expectedParams.push(...overload.params.filter((p) => named.hasOwnProperty(p.name)));
         // Then required params
-        expectedParams.push(...overload.Params.filter((p) => !p.Optional && !expectedParams.includes(p)));
+        expectedParams.push(...overload.params.filter((p) => !p.optional && !expectedParams.includes(p)));
         // Then optional non-variadic params
-        expectedParams.push(...overload.Params.filter((p) => !p.Variadic && !expectedParams.includes(p)));
+        expectedParams.push(...overload.params.filter((p) => !p.variadic && !expectedParams.includes(p)));
         // Then optional variadic params
-        expectedParams.push(...overload.Params.filter((p) => !expectedParams.includes(p)));
+        expectedParams.push(...overload.params.filter((p) => !expectedParams.includes(p)));
 
         const paramMap = {};
         let success = true;
         let posCursor = 0;
 
         for (const param of expectedParams) {
-            const name = param.Name;
+            const name = param.name;
             let rawValue = undefined;
 
             if (named.hasOwnProperty(name)) {
-                rawValue = param.Variadic ? named[name] : named[name][0];
-                posCursor += (param.Variadic ? rawValue.length : 1);
-            } else if (param.Variadic) {
+                rawValue = param.variadic ? named[name] : named[name][0];
+                posCursor += (param.variadic ? rawValue.length : 1);
+            } else if (param.variadic) {
                 rawValue = positional.slice(posCursor);
                 posCursor = positional.length;
             } else if (posCursor < positional.length) {
                 rawValue = positional[posCursor++];
-            } else if (!param.Optional) {
+            } else if (!param.optional) {
                 success = false;
                 break;
             }
 
             if (rawValue !== undefined) {
                 try {
-                    paramMap[name] = param.Parser(rawValue);
+                    paramMap[name] = param.parser(rawValue);
                 } catch (e) {
                     success = false;
                     break;
@@ -245,5 +246,5 @@ export function ExecuteCommand(command, rawText, tokens) {
     parsedParams.__rawText = rawText;
     parsedParams.__tokens = tokens;
 
-    matchingOverload.Executor(parsedParams, parsedFlags);
+    matchingOverload.executor(parsedParams, parsedFlags);
 }

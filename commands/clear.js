@@ -1,7 +1,7 @@
 "use strict";
 
-import { RegisterCommand, Command, CommandOverload, CommandParam } from "../command.js";
-import { Terminal } from "../terminal.js";
+import { registerCommand, Command, CommandOverload } from "../command.js";
+import { clearScreen } from "../terminal.js";
 
 const name = "clear";
 const aliases = ["cls", "cl"];
@@ -11,12 +11,9 @@ const overloads = [
         [], 
         [],
         () => {
-            const childArray = Array.from(Terminal.children);
-            const removableChildren = childArray.filter((c) => c.tagName != "TEXTAREA");
-            for (const child of removableChildren)
-                child.remove();
+            clearScreen();
     })
 
 ];
 
-RegisterCommand(name, new Command(overloads, aliases));
+registerCommand(name, new Command(overloads, aliases));

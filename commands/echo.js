@@ -1,7 +1,7 @@
 "use strict";
 
-import { RegisterCommand, Command, CommandOverload, CommandParam } from "../command.js";
-import { WriteLine } from "../terminal.js";
+import { registerCommand, Command, CommandOverload, CommandParam } from "../command.js";
+import { writeLine } from "../terminal.js";
 
 const name = "echo";
 const aliases = ["say"];
@@ -13,10 +13,10 @@ const overloads = [
         ], 
         [],
         ({__rawText, __tokens}) => {
-            WriteLine(__rawText.slice(__tokens[0].length).replace('--text', '').trimStart());
+            writeLine(__rawText.slice(__tokens[0].length).replace('--text', '').trimStart());
         }
     )
 
 ];
 
-RegisterCommand(name, new Command(overloads, aliases));
+registerCommand(name, new Command(overloads, aliases));

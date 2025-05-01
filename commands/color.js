@@ -1,7 +1,7 @@
 "use strict";
 
-import { RegisterCommand, Command, CommandOverload, CommandParam } from "../command.js";
-import { Terminal } from "../terminal.js"
+import { registerCommand, Command, CommandOverload, CommandParam } from "../command.js";
+import { terminal_element } from "../terminal.js"
 
 const name = "color";
 const aliases = [];
@@ -16,10 +16,10 @@ const overloads = [
         ({background, text}) => {
             document.getElementsByTagName('html')[0].style.backgroundColor = background;
             if (text != undefined)
-                Terminal.style.color = text;
+                terminal_element.style.color = text;
         }
     )
 
 ];
 
-RegisterCommand(name, new Command(overloads, aliases));
+registerCommand(name, new Command(overloads, aliases));

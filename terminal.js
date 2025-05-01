@@ -1,28 +1,33 @@
 "use strict";
 
-import { Tokenize, GetCommand, ExecuteCommand } from "./command.js";
-import "./commands/init.js";
+import { tokenize, getCommand, executeCommand, commands } from "./command.js";
+import "./commands/index.js";
 
-export const Version = "0.2.1";
-export const Terminal = document.getElementById("terminal");
-export const InputArea = document.getElementById("terminal-input");
-export const Prefix = document.getElementById("prefix");
+const version = "0.2.2";
+export const terminal_element = document.getElementById("terminal");
+export const input_element = document.getElementById("terminal-input");
+export const prefix_element = document.getElementById("prefix");
 
 // Global variable storage
-export const Variables = {};
+export const variables = {};
 
 // History
-const CmdHistory = [];
-var HistoryIdx = -1;
-var HistoryFlag = false;
+const cmdHistory = [];
+var historyIdx = -1;
+var historyFlag = false;
 
-// Filesystem
-var CurrentPath = null;
+// WIP Filesystem
+var currentPath = null;
 
-function Initialize() {
-    LoadPath("/");
-    WriteLine(`
-        Website [Version ${Version}]
+// WIP User data
+var currentUser = 'anon';
+
+function boot() {
+    // Make commands available as variable '$commands'
+    variables.commands = commands;
+    loadPath("/");
+    writeLine(`
+        Website [Version ${version}]
         (c) <b>Josh Pahman</b> 2025. No rights reserved.
 
         <span style="color:#6A9955">/**
@@ -32,97 +37,108 @@ function Initialize() {
         
         I hope you enjoy; check out my <a style='color:inherit' href='https://linkedin.com/in/jpahm'>LinkedIn</a> and <a style='color:inherit' href='https://github.com/jpahm'>Github</a> while you're here!
         
-        **/</span>
+        **/</span>\n
     `);
-    WriteBreak();
 }
 
 // Focus on terminal when the page gets clicked
 document.addEventListener("click", () => {
-    InputArea.focus();
+    input_element.focus();
 });
 
 // Re-render prefix on viewport resize to scale properly
 visualViewport.addEventListener("resize", () => {
-    SetPrefix(Prefix.value);
+    setPrefix(prefix_element.value);
 })
 
 // Handle keypresses in the terminal
-InputArea.addEventListener("keydown", (e) => {
-    InputArea.placeholder = "";
+input_element.addEventListener("keydown", (e) => {
+    input_element.placeholder = "";
     switch (e.key) {
         case "Enter":
             // Write to stdout on enter
             e.preventDefault();
-            HandleEnter();
+            onEnter();
             break;
         case "ArrowUp":
             e.preventDefault();
-            HistoryBack();
+            historyBack();
             break;
         case "ArrowDown":
             e.preventDefault();
-            HistoryForward();
+            historyForward();
             break;
         default:
             // Don't flag that we used history if we edited the input
-            HistoryFlag = false;
+            historyFlag = false;
     }
 });
 
-function LoadPath(path) {
-    CurrentPath = path;
-    SetPrefix(`cmd:${CurrentPath}>`);
-    // TODO: Add actual filesystem simulation
+/** Handles processing text when the enter key is pressed. */
+function onEnter() {
+    // Write raw input (including prefix) to linebuf
+    writeLine(prefix_element.value + input_element.value, false);
+    // Process the terminal input
+    processInput(input_element.value);
+    // Clear input, refocus, and keep it in view
+    input_element.value = "";
+    input_element.focus();
+    input_element.scrollIntoView(true);
 }
 
 /** Goes backward in the command history. */
-function HistoryBack() {
-    if (HistoryIdx == -1) {
-        if (CmdHistory.length > 0)
-            HistoryIdx = CmdHistory.length - 1;
+function historyBack() {
+    if (historyIdx == -1) {
+        if (cmdHistory.length > 0)
+            historyIdx = cmdHistory.length - 1;
         else
             return;
     }
-    else if (HistoryFlag) {
-        HistoryIdx = Math.max(0, HistoryIdx - 1);
+    else if (historyFlag) {
+        historyIdx = Math.max(0, historyIdx - 1);
     }
-    InputArea.value = CmdHistory[HistoryIdx];
-    HistoryFlag = true;
+    input_element.value = cmdHistory[historyIdx];
+    historyFlag = true;
 }
 
 /** Goes forward in the command history. */
-function HistoryForward() {
-    if (HistoryIdx == -1)
+function historyForward() {
+    if (historyIdx == -1)
         return;
     else
-        HistoryIdx = Math.min(CmdHistory.length, HistoryIdx + 1);
+        historyIdx = Math.min(cmdHistory.length, historyIdx + 1);
 
-    InputArea.value = CmdHistory[HistoryIdx] || "";
-    HistoryFlag = true;
+    input_element.value = cmdHistory[historyIdx] || "";
+    historyFlag = true;
+}
+
+function loadPath(path) {
+    currentPath = path;
+    setPrefix(`${currentUser}:${currentPath}>`);
+    // TODO: Add actual filesystem simulation
 }
 
 /**
  * Changes the terminal prefix and scales the terminal accordingly.
- * @param {*} newPrefix The new terminal prefix to use.
+ * @param {String} newPrefix The new terminal prefix to use.
  */
-function SetPrefix(newPrefix) {
-    Prefix.style.width = `${newPrefix.length}ch`;
-    InputArea.style.width = `${(visualViewport.width - Prefix.clientWidth)/visualViewport.width * 100 - 4}%`;
-    Prefix.value = newPrefix;
+function setPrefix(newPrefix) {
+    prefix_element.style.width = `${newPrefix.length}ch`;
+    input_element.style.width = `${(visualViewport.width - prefix_element.clientWidth)/visualViewport.width * 100 - 4}%`;
+    prefix_element.value = newPrefix;
 }
 
 /**
  * Writes an HTML node directly to the terminal.
  * @param {*} node The node to write.
  */
-function WriteRaw(node) {
-    Terminal.insertBefore(node, Prefix);
+function writeNode(node) {
+    terminal_element.insertBefore(node, prefix_element);
 }
 
 /** Writes a line break to the terminal. */
-function WriteBreak() {
-    WriteRaw(document.createElement("br"));
+function writeBreak() {
+    writeNode(document.createElement("br"));
 }
 
 /**
@@ -131,16 +147,17 @@ function WriteBreak() {
  * @param {boolean} writeAsHTML Whether to treat the text as HTML. Defaults to true.
  * @returns {HTMLParagraphElement} The node that was written to the terminal.
  */
-function Write(text, writeAsHTML = true) {
+function write(text, writeAsHTML = true) {
     // Create new paragraph node and style it accordingly
     const textNode = document.createElement("p");
-    // Replace newlines with break tags
-    text = text.replace(/\n/g, "<br/>");
-    if (writeAsHTML)
+    if (writeAsHTML) {
+        text = text.replace(/\n/g, "<br/>");
         textNode.innerHTML = text;
-    else
+    }
+    else {
         textNode.textContent = text;
-    WriteRaw(textNode);
+    }
+    writeNode(textNode);
     return textNode;
 }
 
@@ -150,28 +167,27 @@ function Write(text, writeAsHTML = true) {
  * @param {boolean} writeAsHTML Whether to treat the text as HTML. Defaults to true.
  * @returns {HTMLParagraphElement} The node that was written to the terminal.
  */
-export function WriteLine(text, writeAsHTML = true) {
-    let writtenNode = Write(text, writeAsHTML);
-    WriteBreak();
+export function writeLine(text, writeAsHTML = true) {
+    let writtenNode = write(text, writeAsHTML);
+    writeBreak();
     return writtenNode;
 }
 
-/** Handles processing text when the enter key is pressed. */
-function HandleEnter() {
-    // Write raw input (including prefix) to linebuf
-    WriteLine(Prefix.value + InputArea.value, false);
-    // Process the terminal input
-    ProcessInput(InputArea.value);
-    // Clear input and refocus
-    InputArea.value = "";
-    InputArea.focus();
+/**
+ * Safely clears the terminal.
+ */
+export function clearScreen() {
+    const childArray = Array.from(terminal_element.children);
+    const removableChildren = childArray.filter((c) => c.tagName != "TEXTAREA");
+    for (const child of removableChildren)
+        child.remove();
 }
 
 /**
  * Attempts to find and run a command given raw user input.
  * @param {String} rawInput The user's raw text input.
  */
-function ProcessInput(rawInput) {
+function processInput(rawInput) {
     try {
         // Remove leading/trailing whitespace
         const trimmed = rawInput.trim();
@@ -181,36 +197,33 @@ function ProcessInput(rawInput) {
             return;
 
         // If we didn't use history, reset history position to end
-        if (!HistoryFlag)
-            HistoryIdx = -1;
+        if (!historyFlag)
+            historyIdx = -1;
 
         // Add input to history stack
-        CmdHistory.push(trimmed);
-        HistoryFlag = false;
+        cmdHistory.push(trimmed);
+        historyFlag = false;
 
         // Do variable substitution before tokenization
-        const substituted = trimmed.replace(/\\?(?:\$\{\{((?:[^\\}]|\\.|}(?!}))*?)\}\}|(\$[A-z_]+))/g, (match, group, name) => {
+        const substituted = trimmed.replace(/\\?(?:\$\{\{((?:[^\\}]|\\.|}(?!}))*?)\}\}|(\$[\w_][\w\d_]*))/g, (match, group, name) => {
             // Allow for escaping substitution
             if (match.startsWith('\\'))
                 return match.slice(1);
-            const toSub = String(group ?? name).replace(/\$([A-z]+)/g, "$1");
-            const val = ContextualEval(toSub, Variables);
-            if (typeof val == 'object')
+            const toSub = String(group ?? name).replace(/\$([\w_][\w\d_]*)/g, "$1");
+            const val = contextualEval(toSub, variables);
+            if (typeof val === 'object')
                 return JSON.stringify(val);
             else
                 return val;
         });
 
         // Tokenize text, then find and run command
-        let tokens = Tokenize(substituted);
-        let commandToRun = GetCommand(tokens[0]);
-        ExecuteCommand(commandToRun, substituted, tokens);
-
-        // Keep input area in view after command output
-        InputArea.scrollIntoView(true);
+        let tokens = tokenize(substituted);
+        let commandToRun = getCommand(tokens[0]);
+        executeCommand(commandToRun, substituted, tokens);
     } 
     catch (error) {
-        WriteLine(`<span class="error">${error.name}:</span> ${error.message}`)
+        writeLine(`<span class="error">${error.name}:</span> ${error.message}`)
     }
 }
 
@@ -220,9 +233,9 @@ function ProcessInput(rawInput) {
  * @param {object} context Object containing the variables to expose to the evaluated expression.
  * @returns 
  */
-export function ContextualEval(expr, context) {
+export function contextualEval(expr, context) {
     return Function(...Object.keys(context), `"use strict"; return (${expr})`)
            (...Object.values(context));
 }
 
-Initialize();
+boot();
