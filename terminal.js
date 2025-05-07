@@ -1,6 +1,7 @@
 "use strict";
 
 import { tokenize, getCommand, executeCommand, commands } from "./command.js";
+import { Filesystem } from "./storage.js";
 import "./commands/index.js";
 
 const version = "0.2.2";
@@ -17,7 +18,7 @@ var historyIdx = -1;
 var historyFlag = false;
 
 // WIP Filesystem
-var currentPath = null;
+const fs = new Filesystem();
 
 // WIP User data
 var currentUser = 'anon';
@@ -112,10 +113,10 @@ function historyForward() {
     historyFlag = true;
 }
 
-function loadPath(path) {
-    currentPath = path;
+export function loadPath(path) {
+    let currentPath = fs.resolvePath(path);
+    fs.workingDir = currentPath;
     setPrefix(`${currentUser}:${currentPath}>`);
-    // TODO: Add actual filesystem simulation
 }
 
 /**

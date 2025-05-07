@@ -1,4 +1,5 @@
 // Auto-generated command imports 
+import "./cd.js"; 
 import "./clear.js"; 
 import "./color.js"; 
 import "./echo.js"; 
